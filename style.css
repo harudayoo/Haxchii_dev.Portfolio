@@ -609,6 +609,21 @@ h6 {
   background-color: #f8fafc;
 }
 
+.project-safelagay .project-image {
+  background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.project-safelagay .project-image::before {
+  content: "\f3ed";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  font-size: 4rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
 .project-overlay {
   position: absolute;
   top: 0;
