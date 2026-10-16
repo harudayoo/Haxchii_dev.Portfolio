@@ -20,7 +20,7 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 	<!-- Custom CSS -->
-	<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="style.css?v=20261016b">
 </head>
 
 <body>
@@ -652,6 +652,7 @@
 
 		// The dot snaps to the pointer; the outline eases toward it every frame.
 		// Smoothing is time-based so it feels the same at 60Hz and 144Hz.
+		// Centering lives in the transform so it holds at any circle size.
 		const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 		let mouseX = 0, mouseY = 0, outlineX = 0, outlineY = 0;
 		let lastFrame = 0, cursorStarted = false;
@@ -662,8 +663,8 @@
 			const ease = reduceMotion.matches ? 1 : 1 - Math.exp(-dt / 55);
 			outlineX += (mouseX - outlineX) * ease;
 			outlineY += (mouseY - outlineY) * ease;
-			cursorDot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
-			cursorOutline.style.transform = `translate3d(${outlineX}px, ${outlineY}px, 0)`;
+			cursorDot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0) translate(-50%, -50%)`;
+			cursorOutline.style.transform = `translate3d(${outlineX}px, ${outlineY}px, 0) translate(-50%, -50%)`;
 			requestAnimationFrame(renderCursor);
 		}
 
@@ -695,6 +696,44 @@
 				cursorOutline.classList.remove('inverted');
 			}
 		});
+
+		// Touch feedback: no cursor on touch screens, so taps ripple and drags leave a trail
+		function isOverInvertedAt(y) {
+			const contactRect = contactSection.getBoundingClientRect();
+			const footerRect = footerSection.getBoundingClientRect();
+			return (y >= contactRect.top && y <= contactRect.bottom) ||
+				(y >= footerRect.top && y <= footerRect.bottom);
+		}
+
+		function spawnTouchFx(className, x, y) {
+			const el = document.createElement('div');
+			el.className = `touch-fx ${className}`;
+			if (isOverInvertedAt(y)) el.classList.add('inverted');
+			el.style.setProperty('--x', `${x}px`);
+			el.style.setProperty('--y', `${y}px`);
+			el.addEventListener('animationend', () => el.remove(), { once: true });
+			document.body.appendChild(el);
+		}
+
+		let lastTrailX = 0, lastTrailY = 0;
+
+		window.addEventListener('touchstart', (e) => {
+			const t = e.touches[e.touches.length - 1];
+			spawnTouchFx('touch-ripple', t.clientX, t.clientY);
+			spawnTouchFx('touch-ripple echo', t.clientX, t.clientY);
+			spawnTouchFx('touch-tap', t.clientX, t.clientY);
+			lastTrailX = t.clientX;
+			lastTrailY = t.clientY;
+		}, { passive: true });
+
+		window.addEventListener('touchmove', (e) => {
+			const t = e.touches[0];
+			// Only drop a dot every ~16px so long swipes stay cheap
+			if (Math.hypot(t.clientX - lastTrailX, t.clientY - lastTrailY) < 16) return;
+			lastTrailX = t.clientX;
+			lastTrailY = t.clientY;
+			spawnTouchFx('touch-trail', t.clientX, t.clientY);
+		}, { passive: true });
 
 		// Cursor hover effect
 		const interactiveElements = document.querySelectorAll('a, button, .project-card');
