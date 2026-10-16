@@ -986,6 +986,10 @@ body.menu-open .nav-toggle span:last-child {
   );
 }
 
+[data-theme="dark"] .project-image.placeholder {
+  background: linear-gradient(135deg, #0f1a2b 0%, var(--color-accent-light) 100%);
+}
+
 .project-image.placeholder i {
   font-size: 3rem;
   color: var(--color-accent);
@@ -1095,6 +1099,17 @@ body.menu-open .nav-toggle span:last-child {
   .project-info {
     padding: var(--space-lg);
   }
+}
+
+/* Ventures reuses the work card layout on the alternate background */
+.ventures {
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ventures .projects-grid {
+  gap: var(--space-2xl);
 }
 
 /* ============================================
